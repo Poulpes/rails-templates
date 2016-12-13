@@ -14,7 +14,7 @@ gem 'redis'
 gem 'sass-rails'
 gem 'jquery-rails'
 gem 'uglifier'
-gem 'bootstrap-sass'
+gem 'materialize-sass'
 gem 'font-awesome-sass'
 gem 'simple_form'
 gem 'autoprefixer-rails'
@@ -51,15 +51,21 @@ RUBY
 file 'config/puma.rb', puma_file_content, force: true
 end
 
+
+
+
+run "touch 'config/initializers/simple_form_materialize.rb'"
+run "curl -L https://gist.githubusercontent.com/Karine03/3f01d6b469d3290fcacbd0c10d19e915/raw/206efb2b9d3a1b73c8c4aab75f94c6b0b2233584/simple_form_materialize.rb > 'config/initializers/simple_form_materialize.rb'"
+
 run "rm -rf app/assets/stylesheets"
-run "curl -L https://github.com/lewagon/stylesheets/archive/master.zip > stylesheets.zip"
+run "curl -L https://github.com/antoineayoub/rails-stylesheets/archive/master.zip > stylesheets.zip"
 run "unzip stylesheets.zip -d app/assets && rm stylesheets.zip && mv app/assets/rails-stylesheets-master app/assets/stylesheets"
 
 run 'rm app/assets/javascripts/application.js'
 file 'app/assets/javascripts/application.js', <<-JS
 //= require jquery
 //= require jquery_ujs
-//= require bootstrap-sprockets
+//= require materialize-sprockets
 //= require_tree .
 JS
 
