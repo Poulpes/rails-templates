@@ -15,7 +15,7 @@ gem 'redis'
 gem 'sass-rails'
 gem 'jquery-rails'
 gem 'uglifier'
-gem 'bootstrap-sass'
+gem 'materialize-sass'
 gem 'font-awesome-sass'
 gem 'simple_form'
 gem 'autoprefixer-rails'
@@ -52,9 +52,14 @@ RUBY
 file 'config/puma.rb', puma_file_content, force: true
 end
 
+
+run "touch 'config/initializers/simple_form_materialize.rb'"
+run "curl -L https://gist.githubusercontent.com/Karine03/3f01d6b469d3290fcacbd0c10d19e915/raw/206efb2b9d3a1b73c8c4aab75f94c6b0b2233584/simple_form_materialize.rb > 'config/initializers/simple_form_materialize.rb'"
+
 run "rm -rf app/assets/stylesheets"
-run "curl -L https://github.com/lewagon/stylesheets/archive/master.zip > stylesheets.zip"
+run "curl -L https://github.com/karine03/rails-stylesheets/archive/master.zip > stylesheets.zip"
 run "unzip stylesheets.zip -d app/assets && rm stylesheets.zip && mv app/assets/rails-stylesheets-master app/assets/stylesheets"
+
 
 run 'rm app/assets/javascripts/application.js'
 file 'app/assets/javascripts/application.js', <<-JS
@@ -102,11 +107,9 @@ file 'app/views/shared/_flashes.html.erb', <<-HTML
 <% end %>
 HTML
 
-run "curl -L https://raw.githubusercontent.com/lewagon/awesome-navbars/master/templates/_navbar_wagon.html.erb > app/views/shared/_navbar.html.erb"
-run "curl -L https://raw.githubusercontent.com/lewagon/design/master/logos/png/logo_red_circle.png > app/assets/images/logo.png"
 
 markdown_file_content = <<-MARKDOWN
-Rails app generated with [lewagon/rails-templates](https://github.com/lewagon/rails-templates), created by the [Le Wagon coding bootcamp](https://www.lewagon.com) team.
+Rails app generated with Devise and Materialize.
 MARKDOWN
 file 'README.md', markdown_file_content, force: true
 
@@ -120,7 +123,6 @@ environment generators
 
 after_bundle do
   rake 'db:drop db:create db:migrate'
-  generate('simple_form:install', '--bootstrap')
   generate(:controller, 'pages', 'home', '--no-assets', '--skip-routes')
   route "root to: 'pages#home'"
   run "rm .gitignore"
@@ -158,5 +160,5 @@ RUBY
   run "figaro install"
   git :init
   git add: "."
-  git commit: %Q{ -m 'Initial commit with devise template from https://github.com/lewagon/rails-templates' }
+  git commit: %Q{ -m 'Initial commit with devise materialize template from https://github.com/karine03/rails-templates' }
 end

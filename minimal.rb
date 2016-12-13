@@ -58,7 +58,7 @@ run "touch 'config/initializers/simple_form_materialize.rb'"
 run "curl -L https://gist.githubusercontent.com/Karine03/3f01d6b469d3290fcacbd0c10d19e915/raw/206efb2b9d3a1b73c8c4aab75f94c6b0b2233584/simple_form_materialize.rb > 'config/initializers/simple_form_materialize.rb'"
 
 run "rm -rf app/assets/stylesheets"
-run "curl -L https://github.com/antoineayoub/rails-stylesheets/archive/master.zip > stylesheets.zip"
+run "curl -L https://github.com/karine03/rails-stylesheets/archive/master.zip > stylesheets.zip"
 run "unzip stylesheets.zip -d app/assets && rm stylesheets.zip && mv app/assets/rails-stylesheets-master app/assets/stylesheets"
 
 run 'rm app/assets/javascripts/application.js'
@@ -92,7 +92,7 @@ file 'app/views/layouts/application.html.erb', <<-HTML
 HTML
 
 markdown_file_content = <<-MARKDOWN
-Rails app generated with [lewagon/rails-templates](https://github.com/lewagon/rails-templates), created by the [Le Wagon coding bootcamp](https://www.lewagon.com) team.
+Rails app generated with materialize.
 MARKDOWN
 file 'README.md', markdown_file_content, force: true
 
@@ -106,7 +106,6 @@ environment generators
 
 after_bundle do
   rake 'db:drop db:create db:migrate'
-  generate('simple_form:install', '--bootstrap')
   generate(:controller, 'pages', 'home', '--no-helper', '--no-assets', '--skip-routes')
   route "root to: 'pages#home'"
 
@@ -123,5 +122,5 @@ TXT
   run "figaro install"
   git :init
   git add: "."
-  git commit: %Q{ -m 'Initial commit with minimal template from https://github.com/lewagon/rails-templates' }
+  git commit: %Q{ -m 'Initial commit with minimal template with materialize from https://github.com/karine03/rails-templates' }
 end
