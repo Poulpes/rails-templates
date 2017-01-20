@@ -65,7 +65,6 @@ run 'rm app/assets/javascripts/application.js'
 file 'app/assets/javascripts/application.js', <<-JS
 //= require jquery
 //= require jquery_ujs
-//= require bootstrap-sprockets
 //= require_tree .
 JS
 
@@ -84,7 +83,7 @@ file 'app/views/layouts/application.html.erb', <<-HTML
     <%= stylesheet_link_tag    'application', media: 'all' %>
   </head>
   <body>
-    <%= render 'shared/navbar' %>
+    <%#= render 'shared/navbar' %>
     <%= render 'shared/flashes' %>
     <%= yield %>
     <%= javascript_include_tag 'application' %>
