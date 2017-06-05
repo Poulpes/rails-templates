@@ -14,7 +14,6 @@ gem 'redis'
 gem 'sass-rails'
 gem 'jquery-rails'
 gem 'uglifier'
-gem 'materialize-sass'
 gem 'font-awesome-sass'
 gem 'simple_form'
 gem 'autoprefixer-rails'
@@ -54,11 +53,10 @@ end
 
 
 
-run "touch 'config/initializers/simple_form_materialize.rb'"
-run "curl -L https://gist.githubusercontent.com/Karine03/3f01d6b469d3290fcacbd0c10d19e915/raw/206efb2b9d3a1b73c8c4aab75f94c6b0b2233584/simple_form_materialize.rb > 'config/initializers/simple_form_materialize.rb'"
+
 
 run "rm -rf app/assets/stylesheets"
-run "curl -L https://github.com/karine03/rails-stylesheets/archive/master.zip > stylesheets.zip"
+run "curl -L https://github.com/poulpes/rails-stylesheets/archive/master.zip > stylesheets.zip"
 run "unzip stylesheets.zip -d app/assets && rm stylesheets.zip && mv app/assets/rails-stylesheets-master app/assets/stylesheets"
 
 run 'rm app/assets/javascripts/application.js'
@@ -91,7 +89,7 @@ file 'app/views/layouts/application.html.erb', <<-HTML
 HTML
 
 markdown_file_content = <<-MARKDOWN
-Rails app generated with materialize.
+Rails minimal app generated.
 MARKDOWN
 file 'README.md', markdown_file_content, force: true
 
@@ -121,5 +119,5 @@ TXT
   run "figaro install"
   git :init
   git add: "."
-  git commit: %Q{ -m 'Initial commit with minimal template with materialize from https://github.com/karine03/rails-templates' }
+  git commit: %Q{ -m 'Initial commit with minimal template from https://github.com/poulpes/rails-templates' }
 end
