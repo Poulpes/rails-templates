@@ -1,87 +1,93 @@
 run "pgrep spring | xargs kill -9"
-run "rm Gemfile"
+
+# GEMFILE
+########################################
+run 'rm Gemfile'
 file 'Gemfile', <<-RUBY
 source 'https://rubygems.org'
 ruby '#{RUBY_VERSION}'
-
-gem 'rails', '#{Rails.version}'
-gem 'puma'
-gem 'pg'
+#{"gem 'bootsnap', require: false" if Rails.version >= "5.2"}
+gem 'devise'
 gem 'figaro'
 gem 'jbuilder', '~> 2.0'
-gem 'devise'
+gem 'pg', '~> 0.21'
+gem 'puma'
+gem 'rails', '#{Rails.version}'
 gem 'redis'
-
-gem 'sass-rails'
-gem 'jquery-rails'
-gem 'uglifier'
-gem 'font-awesome-sass'
-gem 'simple_form'
 gem 'autoprefixer-rails'
-
+gem 'bootstrap-sass', '~> 3.3'
+gem 'font-awesome-sass', '~> 4.7'
+gem 'sass-rails'
+gem 'simple_form'
+gem 'uglifier'
+gem 'webpacker'
+group :development do
+  gem 'web-console', '>= 3.3.0'
+end
 group :development, :test do
-  gem 'binding_of_caller'
-  gem 'better_errors'
-  #{Rails.version >= "5" ? nil : "gem 'quiet_assets'"}
   gem 'pry-byebug'
   gem 'pry-rails'
+  gem 'listen', '~> 3.0.5'
   gem 'spring'
-  #{Rails.version >= "5" ? "gem 'listen', '~> 3.0.5'" : nil}
-  #{Rails.version >= "5" ? "gem 'spring-watcher-listen', '~> 2.0.0'" : nil}
+  gem 'spring-watcher-listen', '~> 2.0.0'
 end
-
-#{Rails.version < "5" ? "gem 'rails_12factor', group: :production" : nil}
 RUBY
 
-file ".ruby-version", RUBY_VERSION
+# Ruby version
+########################################
+file '.ruby-version', RUBY_VERSION
 
+# Procfile
+########################################
 file 'Procfile', <<-YAML
 web: bundle exec puma -C config/puma.rb
 YAML
 
-if Rails.version < "5"
-puma_file_content = <<-RUBY
-threads_count = ENV.fetch("RAILS_MAX_THREADS") { 5 }.to_i
-
-threads     threads_count, threads_count
-port        ENV.fetch("PORT") { 3000 }
-environment ENV.fetch("RAILS_ENV") { "development" }
-RUBY
-
-file 'config/puma.rb', puma_file_content, force: true
+# Spring conf file
+########################################
+inject_into_file 'config/spring.rb', before: ').each { |path| Spring.watch(path) }' do
+  '  config/application.yml\n'
 end
 
-run "rm -rf app/assets/stylesheets"
-run "curl -L https://github.com/poulpes/rails-stylesheets/archive/master.zip > stylesheets.zip"
-run "unzip stylesheets.zip -d app/assets && rm stylesheets.zip && mv app/assets/rails-stylesheets-master app/assets/stylesheets"
 
+# Assets
+########################################
+run 'rm -rf app/assets/stylesheets'
+run 'rm -rf vendor'
+run 'curl -L https://github.com/poulpes/rails-stylesheets/archive/master.zip > stylesheets.zip'
+run 'unzip stylesheets.zip -d app/assets && rm stylesheets.zip && mv app/assets/rails-stylesheets-master app/assets/stylesheets'
 
 run 'rm app/assets/javascripts/application.js'
 file 'app/assets/javascripts/application.js', <<-JS
-//= require jquery
-//= require jquery_ujs
+//= require rails-ujs
 //= require_tree .
 JS
 
+# Dev environment
+########################################
 gsub_file('config/environments/development.rb', /config\.assets\.debug.*/, 'config.assets.debug = false')
 
+
+# Layout
+########################################
 run 'rm app/views/layouts/application.html.erb'
 file 'app/views/layouts/application.html.erb', <<-HTML
 <!DOCTYPE html>
 <html>
   <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <title>TODO</title>
     <%= csrf_meta_tags %>
-    #{Rails.version >= "5" ? "<%= action_cable_meta_tag %>" : nil}
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-    <%= stylesheet_link_tag    'application', media: 'all' %>
+    <%= action_cable_meta_tag %>
+    <%= stylesheet_link_tag 'application', media: 'all' %>
+    <%#= stylesheet_pack_tag 'application', media: 'all' %> <!-- Uncomment if you import CSS in app/javascript/packs/application.js -->
   </head>
   <body>
-    <%#= render 'shared/navbar' %>
     <%= render 'shared/flashes' %>
     <%= yield %>
     <%= javascript_include_tag 'application' %>
+    <%= javascript_pack_tag 'application' %>
   </body>
 </html>
 HTML
@@ -102,35 +108,66 @@ file 'app/views/shared/_flashes.html.erb', <<-HTML
 HTML
 
 
+# README
+########################################
 markdown_file_content = <<-MARKDOWN
-Rails app generated with Devise.
+Rails app generated with [poulpes/rails-templates](https://github.com/poulpes/rails-templates).
 MARKDOWN
 file 'README.md', markdown_file_content, force: true
 
+# Generators
+########################################
 generators = <<-RUBY
 config.generators do |generate|
       generate.assets false
+      generate.helper false
+      generate.test_framework  :test_unit, fixture: false
     end
 RUBY
 
 environment generators
 
+########################################
+# AFTER BUNDLE
+########################################
 after_bundle do
-  rake 'db:drop db:create db:migrate'
-  generate(:controller, 'pages', 'home', '--no-assets', '--skip-routes')
+  # Generators: db + pages controller
+  ########################################
+  rails_command 'db:drop db:create db:migrate'
+  generate(:controller, 'pages', 'home', '--skip-routes', '--no-test-framework')
+
+  # Routes
+  ########################################
   route "root to: 'pages#home'"
-  run "rm .gitignore"
+
+  # Git ignore
+  ########################################
+  run 'rm .gitignore'
   file '.gitignore', <<-TXT
 .bundle
 log/*.log
 tmp/**/*
 tmp/*
+!log/.keep
+!tmp/.keep
 *.swp
 .DS_Store
 public/assets
+public/packs
+public/packs-test
+node_modules
+yarn-error.log
+.byebug_history
 TXT
+
+
+  # Devise install + user
+  ########################################
   generate('devise:install')
   generate('devise', 'User')
+
+  # App controller
+  ########################################
   run 'rm app/controllers/application_controller.rb'
   file 'app/controllers/application_controller.rb', <<-RUBY
 class ApplicationController < ActionController::Base
@@ -138,21 +175,57 @@ class ApplicationController < ActionController::Base
   before_action :authenticate_user!
 end
 RUBY
-  rake 'db:migrate'
+
+  # migrate + devise views
+  ########################################
+  rails_command 'db:migrate'
   generate('devise:views')
+
+  # Pages Controller
+  ########################################
   run 'rm app/controllers/pages_controller.rb'
   file 'app/controllers/pages_controller.rb', <<-RUBY
 class PagesController < ApplicationController
-  skip_before_action :authenticate_user!, only: [ :home ]
-
+  skip_before_action :authenticate_user!, only: [:home]
   def home
   end
 end
 RUBY
+
+  # Environments
+  ########################################
   environment 'config.action_mailer.default_url_options = { host: "http://localhost:3000" }', env: 'development'
   environment 'config.action_mailer.default_url_options = { host: "http://TODO_PUT_YOUR_DOMAIN_HERE" }', env: 'production'
-  run "figaro install"
+
+  # Webpacker / Yarn
+  ########################################
+  run 'rm app/javascript/packs/application.js'
+  run 'yarn add jquery bootstrap@3'
+  file 'app/javascript/packs/application.js', <<-JS
+import "bootstrap";
+JS
+
+  inject_into_file 'config/webpack/environment.js', before: 'module.exports' do
+<<-JS
+// Bootstrap 3 has a dependency over jQuery:
+const webpack = require('webpack')
+environment.plugins.prepend('Provide',
+  new webpack.ProvidePlugin({
+    $: 'jquery',
+    jQuery: 'jquery'
+  })
+)
+JS
+  end
+
+  # Figaro
+  ########################################
+  run 'bundle binstubs figaro'
+  run 'figaro install'
+
+  # Git
+  ########################################
   git :init
-  git add: "."
-  git commit: %Q{ -m 'Initial commit with devise template from https://github.com/poulpes/rails-templates' }
+  git add: '.'
+  git commit: "-m 'Initial commit with devise template from https://github.com/poulpes/rails-templates'"
 end
